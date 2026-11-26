@@ -332,3 +332,16 @@ body.reading .mas{opacity:0;transition:opacity .25s}
 .footer .r-pay{justify-items:stretch;text-align:start}
 .footer .r-pay h3{text-align:start}
 @media(max-width:860px){.r-pay h3{text-align:start}}
+
+/* phone: nothing may widen the page (mascot walking off the edge while the video opens) */
+.mas{overflow-x:clip;overflow-y:visible}
+html,body{overflow-x:clip;max-width:100%}
+html.fs,html.fs body{overflow-x:hidden}
+/* collection filters: one row on phones */
+@media(max-width:600px){.filters{flex-wrap:nowrap;gap:6px}.fl{flex:1 1 0;min-width:0;padding:0 4px;font-size:14px;white-space:nowrap;min-height:42px}}
+@media(max-width:340px){.fl{font-size:13px}}
+/* launch section: single column on phones (the 2-column rule above was overriding the 900px rule) */
+@media(max-width:900px){.launch{grid-template-columns:1fr!important;gap:var(--s5)}.launch img{width:100%;aspect-ratio:16/10;max-height:none}}
+.subform.fold label,.subform.fold input,.subform.fold .err,.subform.fold .ok{display:none}
+.subform.fold .row{display:block}.subform.fold .btn{width:100%}
+@media(max-width:600px){.subform .row{flex-direction:row}.subform .row input{flex:1 1 auto;min-width:0}.subform .row .btn{flex:0 0 auto}}

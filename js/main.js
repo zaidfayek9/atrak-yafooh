@@ -57,6 +57,15 @@
       m.textContent = good ? '' : rules[id][1]; if (good) el.removeAttribute('aria-invalid'); else { el.setAttribute('aria-invalid', 'true'); bad++; } });
     $('#cOk').textContent = bad ? '' : 'استلمنا طلبك، وسنرسل لك العرض على واتساب والبريد في أقرب وقت.'; if (!bad) $('#cForm').reset();
   }
+  // phone: the notify form starts as one "سجّل" button; a tap opens the number field
+  (function () {
+    var f = $('#subForm'); if (!f || !window.matchMedia) return; var mq = window.matchMedia('(max-width: 600px)');
+    if (mq.matches) f.classList.add('fold');
+    f.addEventListener('click', function (e) {
+      var b = e.target.closest && e.target.closest('.btn'); if (!b || !f.classList.contains('fold')) return;
+      e.stopPropagation(); e.preventDefault(); f.classList.remove('fold'); var i = $('#subMail'); try { i.focus(); } catch (x) {}
+    }, true);
+  })();
   // Hosted pages run in a sandboxed iframe without allow-forms: native submit is blocked, so wire click + Enter explicitly.
   [['#subForm', subSubmit], ['#cForm', cSubmit]].forEach(function (p) {
     var f = $(p[0]);
