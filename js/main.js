@@ -31,8 +31,29 @@
   setInterval(function () { if (curCh === null) return; var hov = false; try { hov = chBox.matches(':hover'); } catch (e) {} if (chTouch) return; if (hov) chClear(); else if (!chTimer) chArm(); }, 400);
   window.addEventListener('resize', chPlace);
   // collection card flip
-  function flipCard(c, on) { c.classList.toggle('flip', on); var b = c.querySelector('.fbtn'); b.setAttribute('aria-expanded', on); c.querySelector('.cb').setAttribute('aria-hidden', !on); $$('.cbtn,.bk', c).forEach(function (x) { x.tabIndex = on ? 0 : -1; }); (on ? c.querySelector('.bk') : b).focus({ preventScroll: true }); }
-  $$('.card').forEach(function (c) { c.querySelector('.fbtn').addEventListener('click', function () { flipCard(c, true); }); c.querySelector('.bk').addEventListener('click', function () { flipCard(c, false); }); c.querySelector('.cbtn').addEventListener('click', function () { flipCard(c, false); }); c.addEventListener('keydown', function (e) { if (e.key === 'Escape' && c.classList.contains('flip')) flipCard(c, false); }); });
+  // Collection details. Hover (mouse only) previews; a click/tap PINS the card open. A pinned card closes only by: its arrow, Escape,
+  // "اطلب عرضك", a click outside, or opening another card. One card open at a time.
+  function flipCard(c, on, quiet) {
+    if (c.classList.contains('flip') === on) return;
+    if (on) $$('.card.flip').forEach(function (o) { if (o !== c) { o._pin = false; flipCard(o, false, true); } });
+    if (!on) { c._pin = false; clearTimeout(c._lt); }
+    c.classList.toggle('flip', on); var b = c.querySelector('.fbtn'); b.setAttribute('aria-expanded', on); c.querySelector('.cb').setAttribute('aria-hidden', !on); $$('.cbtn,.bk', c).forEach(function (x) { x.tabIndex = on ? 0 : -1; });
+    if (!quiet) setTimeout(function () { if (c.classList.contains('flip') === on) (on ? c.querySelector('.bk') : b).focus({ preventScroll: true }); }, on ? 400 : 0);
+  }
+  function anyPinned() { return $$('.card').some(function (x) { return x._pin; }); }
+  $$('.card').forEach(function (c) {
+    var enter = function () { clearTimeout(c._lt); if (!anyPinned()) flipCard(c, true, true); };
+    var leave = function () { clearTimeout(c._lt); if (c._pin) return; c._lt = setTimeout(function () { if (!c._pin && !c.matches(':hover')) flipCard(c, false, true); }, 150); };
+    c.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.bk,.cbtn')) return; flipCard(c, true); c._pin = true; });
+    c.querySelector('.bk').addEventListener('click', function (e) { e.stopPropagation(); flipCard(c, false); });
+    c.querySelector('.cbtn').addEventListener('click', function () { flipCard(c, false, true); });
+    if (window.PointerEvent) {
+      c.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') enter(); });
+      c.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') leave(); });
+    } else { c.addEventListener('mouseenter', enter); c.addEventListener('mouseleave', leave); }
+    c.addEventListener('keydown', function (e) { if (e.key === 'Escape' && c.classList.contains('flip')) flipCard(c, false); });
+  });
+  document.addEventListener('click', function (e) { $$('.card.flip').forEach(function (c) { if (!c.contains(e.target)) flipCard(c, false, true); }); });
   setCh(null);
   // countdown (to a fixed date 60 days after first load day start)
   var target = new Date('2026-11-27T00:00:00+03:00');
@@ -87,7 +108,7 @@
   if (im.complete && im.naturalWidth) startM(); else im.addEventListener('load', startM);
   // follows the visitor. Inside a hosted full-height iframe 'position:fixed' sits at the bottom of the whole page,
   // so the visible part of the page is found with IntersectionObserver (implicit root = top-level viewport) over thin trackers.
-  var LINES = { hero: 'يا هلا بك في دار عطرك بيفوح!', collection: 'ثمانية عطور، اختر اللي يشبهك', journey: 'أربع محطات لين توصلك الزجاجة', 'scent-map': 'القاعدة هي اللي تبقى أطول', guide: 'ثلاث خطوات وتعرف عطرك', pricing: 'مجلس أكثر باقة يطلبونها', journal: 'تعال اقرأ أوراق الدار', launch: 'جمعة الدار على الأبواب، سجّل بريدك', consultation: 'اطلب عرضك وأنا أرتّب لك', footer: 'في أمان الله، ارجع لنا قريب' };
+  var LINES = { hero: 'يا هلا بك في دار عطرك بيفوح!', collection: 'ثمانية عطور، اختر اللي يشبهك', journey: 'أربع محطات لين توصلك الزجاجة', 'scent-map': 'القاعدة هي اللي تبقى أطول', guide: 'ثلاث خطوات وتعرف عطرك', pricing: 'مجلس أكثر باقة يطلبونها', journal: 'تعال اقرأ أوراق الدار', launch: 'جمعة الدار على الأبواب، سجّل رقم جوالك', consultation: 'اطلب عرضك وأنا أرتّب لك', footer: 'في أمان الله، ارجع لنا قريب' };
   var TH = 8, MH = 130, LIFT = 34, lastTop = 0, lastBottom = 0, cur = '', first = true, vis = {}, H0 = 0, trkBox = null, io2 = null;
   var secs = $$('main section[id], footer[id]');
   function sectionAt(y) { for (var q = secs.length - 1; q >= 0; q--) { if (secs[q].offsetTop <= y) return secs[q].id; } return 'hero'; }
