@@ -43,14 +43,17 @@
   function anyPinned() { return $$('.card').some(function (x) { return x._pin; }); }
   $$('.card').forEach(function (c) {
     var enter = function () { clearTimeout(c._lt); if (!anyPinned()) flipCard(c, true, true); };
+    // hover opens only from the central zone of the image (middle 56%), so passing over the edges does nothing
+    var zone = function (e) { var im = c.querySelector('.cf img') || c, r = im.getBoundingClientRect(); if (!r.width || !r.height) return false; var x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height; return x >= .22 && x <= .78 && y >= .22 && y <= .78; };
+    var move = function (e) { if (c.classList.contains('flip')) { clearTimeout(c._lt); return; } if (zone(e)) enter(); };
     var leave = function () { clearTimeout(c._lt); if (c._pin) return; c._lt = setTimeout(function () { if (!c._pin && !c.matches(':hover')) flipCard(c, false, true); }, 150); };
     c.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.bk,.cbtn')) return; flipCard(c, true); c._pin = true; });
     c.querySelector('.bk').addEventListener('click', function (e) { e.stopPropagation(); flipCard(c, false); });
     c.querySelector('.cbtn').addEventListener('click', function () { flipCard(c, false, true); });
     if (window.PointerEvent) {
-      c.addEventListener('pointerenter', function (e) { if (e.pointerType === 'mouse') enter(); });
+      c.addEventListener('pointermove', function (e) { if (e.pointerType === 'mouse') move(e); });
       c.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse') leave(); });
-    } else { c.addEventListener('mouseenter', enter); c.addEventListener('mouseleave', leave); }
+    } else { c.addEventListener('mousemove', move); c.addEventListener('mouseleave', leave); }
     c.addEventListener('keydown', function (e) { if (e.key === 'Escape' && c.classList.contains('flip')) flipCard(c, false); });
   });
   document.addEventListener('click', function (e) { $$('.card.flip').forEach(function (c) { if (!c.contains(e.target)) flipCard(c, false, true); }); });
